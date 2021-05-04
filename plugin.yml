@@ -1,6 +1,6 @@
 name: AxMenu
 main: me.DMan16.AxMenu.AxMenu
-depend: [AxUtils]
+depend: [AxUtils,AxItems]
 version: 1.0
 description: Menu for Aldreda
 author: DMan16

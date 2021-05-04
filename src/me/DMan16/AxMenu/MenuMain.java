@@ -1,5 +1,8 @@
 package me.DMan16.AxMenu;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -26,33 +29,34 @@ import org.bukkit.scheduler.BukkitTask;
 import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent;
 
 import me.Aldreda.AxUtils.Classes.Listener;
-import me.Aldreda.AxUtils.Items.Restrictions;
 import me.Aldreda.AxUtils.Utils.ListenerInventory;
 import me.Aldreda.AxUtils.Utils.Utils;
+import me.DMan16.AxItems.Restrictions.Restrictions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 
 public class MenuMain extends Listener {
+	List<MainMenu> menus;
 	private ItemStack store;
-	private ItemStack characterMain;
+	private ItemStack charMain;
 	private ItemStack wardrobe;
 	private ItemStack help;
 	private ItemStack settings;
 	private ItemStack lobby;
 	
 	public MenuMain() {
-		store = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.CHEST,
-				Component.translatable("menu.aldreda.store").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
-		characterMain = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.PLAYER_HEAD,
-				Component.translatable("menu.aldreda.character").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
-		wardrobe = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.LEATHER_CHESTPLATE,
-				Component.translatable("menu.aldreda.wardrobe").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
-		help = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.WRITTEN_BOOK,
-				Component.translatable("menu.aldreda.help").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
-		settings = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPARATOR,
-				Component.translatable("menu.aldreda.settings").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
-		lobby = Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPASS,
-				Component.translatable("menu.aldreda.lobby").decoration(TextDecoration.ITALIC,false),ItemFlag.values())));
+		store = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.CHEST,
+				Component.translatable("menu.aldreda.store").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+		charMain = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.PLAYER_HEAD,
+				Component.translatable("menu.aldreda.character").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+		wardrobe = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.LEATHER_CHESTPLATE,
+				Component.translatable("menu.aldreda.wardrobe").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+		help = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.WRITTEN_BOOK,
+				Component.translatable("menu.aldreda.help").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+		settings = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPARATOR,
+				Component.translatable("menu.aldreda.settings").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+		lobby = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPASS,
+				Component.translatable("menu.aldreda.lobby").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		ShapedRecipe recipe = new ShapedRecipe(Utils.namespacedKey("main_menu_recipe_wtf_why_mojang_stahp"),lobby.clone());
 		recipe.shape("TW","HS");
 		recipe.setIngredient('T', new RecipeChoice.MaterialChoice(Material.CHEST,Material.PLAYER_HEAD));
@@ -60,14 +64,16 @@ public class MenuMain extends Listener {
 		recipe.setIngredient('H',help);
 		recipe.setIngredient('S',settings);
 		Bukkit.addRecipe(recipe);
+		menus = new ArrayList<MainMenu>();
 		register(AxMenu.getInstance());
 	}
 	
 	@EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
 	public void onPlayerJoin(PlayerJoinEvent event) {
+		if (Utils.isPlayerNPC(event.getPlayer())) return;
 		GameMode old = event.getPlayer().getGameMode();
 		event.getPlayer().setGameMode(GameMode.SURVIVAL);
-		new MainMenu(event.getPlayer().getOpenInventory().getTopInventory(),(Player) event.getPlayer());
+		menus.add(new MainMenu(event.getPlayer().getOpenInventory().getTopInventory(),(Player) event.getPlayer()));
 		event.getPlayer().setGameMode(old);
 	}
 	
@@ -88,7 +94,7 @@ public class MenuMain extends Listener {
 		}.runTask(AxMenu.getInstance());
 	}
 	
-	private class MainMenu extends ListenerInventory {
+	class MainMenu extends ListenerInventory {
 		private Player player;
 		private BukkitTask task;
 		private ItemStack character;
@@ -96,7 +102,7 @@ public class MenuMain extends Listener {
 		public MainMenu(Inventory inv, Player player) {
 			super(inv);
 			this.player = player;
-			character = characterMain.clone();
+			character = charMain.clone();
 			SkullMeta meta = (SkullMeta) character.getItemMeta();
 			meta.setOwningPlayer(player);
 			character.setItemMeta(meta);
@@ -165,21 +171,22 @@ public class MenuMain extends Listener {
 		}
 		
 		@Override
-		@EventHandler(ignoreCancelled = true)
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 		public void unregisterOnClose(InventoryCloseEvent event) {
-			if (event.getPlayer().equals(player)) for (int i = 0; i < 5; i++) inventory.setItem(i,null);
+			if (event.getPlayer().equals(player)) clearInv();
 		}
 		
 		@Override
-		@EventHandler(ignoreCancelled = true)
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 		public void unregisterOnLeaveEvent(PlayerQuitEvent event) {
 			if (!event.getPlayer().getUniqueId().equals(((OfflinePlayer) inventory.getHolder()).getUniqueId())) return;
 			task.cancel();
 			clearInv();
 			unregister();
+			menus.remove(this);
 		}
 		
-		private void clearInv() {
+		void clearInv() {
 			for (int i = 0; i < 5; i++) inventory.setItem(i,null);
 		}
 	}

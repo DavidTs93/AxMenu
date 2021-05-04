@@ -5,19 +5,22 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.Aldreda.AxUtils.Utils.Utils;
+import me.DMan16.AxMenu.MenuMain.MainMenu;
 
 public class AxMenu extends JavaPlugin {
 	private static AxMenu instance = null;
+	private MenuMain MenuMain;
 	
 	public void onEnable() {
 		instance = this;
 		saveDefaultConfig();
-		new MenuMain();
+		MenuMain = new MenuMain();
 		Utils.chatColorsLogPlugin("&fAxMenu &aloaded!");
 	}
 	
 	public void onDisable() {
 		Bukkit.getScheduler().cancelTasks(this);
+		for (MainMenu menu : MenuMain.menus) menu.clearInv();
 		Utils.chatColorsLogPlugin("&fAxMenu &adisabed");
 	}
 	
