@@ -10,10 +10,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -36,6 +34,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 
 public class MenuMain extends Listener {
+	private static String translateStore = "menu.aldreda.store";
+	private static String translateLobby = "menu.aldreda.lobby";
+	
 	List<MainMenu> menus;
 	private ItemStack store;
 	private ItemStack charMain;
@@ -46,7 +47,7 @@ public class MenuMain extends Listener {
 	
 	public MenuMain() {
 		store = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.CHEST,
-				Component.translatable("menu.aldreda.store").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+				Component.translatable(translateStore).decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		charMain = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.PLAYER_HEAD,
 				Component.translatable("menu.aldreda.character").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		wardrobe = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.LEATHER_CHESTPLATE,
@@ -56,7 +57,7 @@ public class MenuMain extends Listener {
 		settings = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPARATOR,
 				Component.translatable("menu.aldreda.settings").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		lobby = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPASS,
-				Component.translatable("menu.aldreda.lobby").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
+				Component.translatable(translateLobby).decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		ShapedRecipe recipe = new ShapedRecipe(Utils.namespacedKey("main_menu_recipe_wtf_why_mojang_stahp"),lobby.clone());
 		recipe.shape("TW","HS");
 		recipe.setIngredient('T', new RecipeChoice.MaterialChoice(Material.CHEST,Material.PLAYER_HEAD));
@@ -82,17 +83,18 @@ public class MenuMain extends Listener {
 		if (!event.isCancelled() && event.getPlayer().getOpenInventory().getType() == InventoryType.CRAFTING) event.setCancelled(true);
 	}
 	
-	@EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
+	/*@EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
 	public void onWorkbenchOpen(InventoryOpenEvent event) {
-		if (event.isCancelled() || event.getInventory().getType() != InventoryType.WORKBENCH) return;
+		if (event.isCancelled() || event.getInventory().getType() != InventoryType.WORKBENCH ||
+				!event.getView().title().equals(Component.translatable("container.crafting"))) return;
 		event.setCancelled(true);
 		new BukkitRunnable() {
 			public void run() {
-				event.getPlayer().openInventory(Utils.makeInventory((Player) event.getPlayer(),6,
+				event.getPlayer().openInventory(Utils.makeInventory((Player) event.getPlayer(),InventoryType.WORKBENCH,
 						Component.translatable("block.minecraft.crafting_table").decoration(TextDecoration.ITALIC,false)));
 			}
 		}.runTask(AxMenu.getInstance());
-	}
+	}*/
 	
 	class MainMenu extends ListenerInventory {
 		private Player player;
@@ -123,7 +125,7 @@ public class MenuMain extends Listener {
 			}
 			if (!force && !fix) return;
 			ItemStack item;
-			if (AxMenu.config().getString("server").equalsIgnoreCase("lobby")) item = store.clone();
+			if (AxMenu.isLobby()) item = store.clone();
 			else item = character.clone();
 			inventory.setItem(1,null);
 			inventory.setItem(1,item);
@@ -131,36 +133,27 @@ public class MenuMain extends Listener {
 			inventory.setItem(3,help.clone());
 			inventory.setItem(4,settings.clone());
 		}
-
+		
 		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 		public void onInventoryClick(InventoryClickEvent event) {
 			if (event.isCancelled() || !event.getView().getTopInventory().equals(inventory) || event.getRawSlot() >= inventory.getSize() || event.getRawSlot() < 0) return;
 			event.setCancelled(true);
-			if (event.getClick().isKeyboardClick() || event.getClick().isCreativeAction()) return;
-			if (event.getRawSlot() >= 0 && event.getRawSlot() <= 4) new BukkitRunnable() {
+			if (event.getClick().isCreativeAction()) return;
+			if (event.getClick().isKeyboardClick()) new BukkitRunnable() {
 				public void run() {
-					player.openInventory(Bukkit.createInventory(player,InventoryType.WORKBENCH,Component.translatable("menu.aldreda.store")));
-					new BukkitRunnable() {
-						public void run() {
-							setContent(true);
-						}
-					}.runTask(AxMenu.getInstance());
+					setContent(true);
+					((Player) event.getWhoClicked()).updateInventory();
 				}
 			}.runTask(AxMenu.getInstance());
-			else if (event.getRawSlot() == 0);
-			else if (event.getRawSlot() == 1);
-			else if (event.getRawSlot() == 2);
-			else if (event.getRawSlot() == 3);
-			else if (event.getRawSlot() == 4);
-		}
-		
-		@EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
-		public void onCraftMainMenu(CraftItemEvent event) {
-			if (event.isCancelled() || event.getInventory().getType() == InventoryType.CRAFTING) return;
-			event.setCancelled(true);
-			new BukkitRunnable() {
+			else new BukkitRunnable() {
 				public void run() {
-					player.openInventory(Bukkit.createInventory(player,InventoryType.WORKBENCH,Component.translatable("menu.aldreda.store")));
+					if (event.getRawSlot() == 0) player.openInventory(Bukkit.createInventory(player,1 * 9,Component.translatable(translateLobby)));	// Lobby selector
+					else if (event.getRawSlot() == 1) {
+						if (AxMenu.isLobby()) player.openInventory(Bukkit.createInventory(player,1 * 9,Component.translatable(translateStore)));	// Store
+						else new MenuCharacter(player);
+					} else if (event.getRawSlot() == 2) new MenuWardrobe(player);
+					else if (event.getRawSlot() == 3) new MenuHelp(player);
+					else if (event.getRawSlot() == 4) new MenuSettings(player);
 					new BukkitRunnable() {
 						public void run() {
 							setContent(true);

@@ -2,13 +2,6 @@ name: AxMenu
 main: me.DMan16.AxMenu.AxMenu
 depend: [AxUtils,AxItems]
 version: 1.0
-description: Menu for Aldreda
+description: Menus for Aldreda
 author: DMan16
 api-version: 1.16
-
-commands:
-  AxMenu:
-    permission: aldreda.command.axmenu
-permissions:
-  aldreda.command.axmenu:
-    default: op

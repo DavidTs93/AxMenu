@@ -7,10 +7,10 @@ import org.bukkit.inventory.ItemStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 
-public class MenuWardrobe extends MenuMenu {
+public class MenuHelp extends MenuMenu {
 
-	MenuWardrobe(Player player) {
-		super(player,Component.translatable("menu.aldreda.wardrobe").decoration(TextDecoration.ITALIC,false));
+	MenuHelp(Player player) {
+		super(player,Component.translatable("menu.aldreda.help").decoration(TextDecoration.ITALIC,false));
 	}
 	
 	@Override

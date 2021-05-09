@@ -1,7 +1,6 @@
 package me.DMan16.AxMenu;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.Aldreda.AxUtils.Utils.Utils;
@@ -24,8 +23,8 @@ public class AxMenu extends JavaPlugin {
 		Utils.chatColorsLogPlugin("&fAxMenu &adisabed");
 	}
 	
-	public static FileConfiguration config() {
-		return instance.getConfig();
+	public static boolean isLobby() {
+		return instance.getConfig().getString("server").equalsIgnoreCase("lobby");
 	}
 	
 	public static AxMenu getInstance() {
