@@ -1,16 +1,11 @@
 package me.DMan16.AxMenu;
 
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.UUID;
-
-import org.bukkit.inventory.ItemStack;
-
 import me.Aldreda.AxUtils.AxUtils;
 import me.Aldreda.AxUtils.Utils.Utils;
+import org.bukkit.inventory.ItemStack;
+
+import java.sql.*;
+import java.util.UUID;
 
 class MySQL {
 	
@@ -19,8 +14,8 @@ class MySQL {
 	}
 	
 	private void createTable() throws SQLException {
-		Statement statement = AxUtils.getMySQL().getConnection().createStatement();
-		DatabaseMetaData data = AxUtils.getMySQL().getConnection().getMetaData();
+		Statement statement = AxUtils.getConnection().createStatement();
+		DatabaseMetaData data = AxUtils.getConnection().getMetaData();
 		statement.execute("CREATE TABLE IF NOT EXISTS Wardrobe (UUID VARCHAR(36) NOT NULL UNIQUE);");
 		if (!data.getColumns(null,null,"Wardrobe","UUID").next())
 			statement.execute("ALTER TABLE Economy ADD UUID VARCHAR(36) NOT NULL UNIQUE;");
@@ -37,7 +32,7 @@ class MySQL {
 	
 	private ItemStack getItem(UUID ID, String name) throws SQLException {
 		if (ID == null) throw new SQLException("ID can't be null");
-		PreparedStatement statement = AxUtils.getMySQL().getConnection().prepareStatement("SELECT * FROM Wardrobe WHERE UUID=?;");
+		PreparedStatement statement = AxUtils.getConnection().prepareStatement("SELECT * FROM Wardrobe WHERE UUID=?;");
 		statement.setString(1,ID.toString());
 		ResultSet result = statement.executeQuery();
 		if (!result.next()) throw new SQLException();

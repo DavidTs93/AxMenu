@@ -1,12 +1,13 @@
 package me.DMan16.AxMenu;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent;
+import me.Aldreda.AxUtils.Classes.Listener;
+import me.Aldreda.AxUtils.Utils.ListenerInventory;
+import me.Aldreda.AxUtils.Utils.Utils;
+import me.DMan16.AxItems.Restrictions.Restrictions;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,23 +16,14 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.destroystokyo.paper.event.player.PlayerRecipeBookClickEvent;
-
-import me.Aldreda.AxUtils.Classes.Listener;
-import me.Aldreda.AxUtils.Utils.ListenerInventory;
-import me.Aldreda.AxUtils.Utils.Utils;
-import me.DMan16.AxItems.Restrictions.Restrictions;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MenuMain extends Listener {
 	private static String translateStore = "menu.aldreda.store";
@@ -58,7 +50,7 @@ public class MenuMain extends Listener {
 				Component.translatable("menu.aldreda.settings").decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
 		lobby = Restrictions.DropRemove.add(Restrictions.Undroppable.add(Restrictions.Unequippable.add(Restrictions.Unplaceable.add(Utils.makeItem(Material.COMPASS,
 				Component.translatable(translateLobby).decoration(TextDecoration.ITALIC,false),ItemFlag.values())))));
-		ShapedRecipe recipe = new ShapedRecipe(Utils.namespacedKey("main_menu_recipe_wtf_why_mojang_stahp"),lobby.clone());
+		ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(AxMenu.getInstance(),"axmenu_main_menu_recipe_wtf_why_mojang_stahp"),lobby.clone());
 		recipe.shape("TW","HS");
 		recipe.setIngredient('T', new RecipeChoice.MaterialChoice(Material.CHEST,Material.PLAYER_HEAD));
 		recipe.setIngredient('W',wardrobe);
@@ -177,6 +169,17 @@ public class MenuMain extends Listener {
 			clearInv();
 			unregister();
 			menus.remove(this);
+		}
+		
+		@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+		public void clearOnTeleport(PlayerTeleportEvent event) {
+			if (event.isCancelled() || !event.getPlayer().equals(player)) return;
+			clearInv();
+			new BukkitRunnable() {
+				public void run() {
+					setContent(true);
+				}
+			}.runTaskLater(AxMenu.getInstance(),20);
 		}
 		
 		void clearInv() {
